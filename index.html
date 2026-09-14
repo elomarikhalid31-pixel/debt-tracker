@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#111827">
+<title>متابعة الديون</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;
+ font-family:Arial,Tahoma,sans-serif;
+ background:#f4f6f8;
+ color:#111827;
+}
+header{
+ background:#111827;
+ color:white;
+ padding:22px 18px 28px;
+ border-radius:0 0 25px 25px;
+}
+.header-top{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+}
+.logo{
+ font-size:23px;
+ font-weight:800;
+}
+.subtitle{
+ opacity:.7;
+ font-size:13px;
+ margin-top:5px;
+}
+.add-btn{
+ width:48px;
+ height:48px;
+ border:0;
+ border-radius:15px;
+ background:#f5c542;
+ color:#111827;
+ font-size:28px;
+ font-weight:bold;
+}
+.container{
+ max-width:650px;
+ margin:auto;
+ padding:18px;
+}
+.stats{
+ display:grid;
+ grid-template-columns:repeat(3,1fr);
+ gap:10px;
+ margin-top:-15px;
+}
+.stat{
+ background:white;
+ padding:15px 8px;
+ border-radius:18px;
+ text-align:center;
+ box-shadow:0 5px 18px #0000000d;
+}
+.stat small{color:#6b7280}
+.stat strong{
+ display:block;
+ font-size:18px;
+ margin-top:6px;
+}
+.gold{color:#b8860b}
+.green{color:#16a34a}
+.red{color:#dc2626}
+
+.search{
+ margin:20px 0 12px;
+ width:100%;
+ padding:14px 16px;
+ border:1px solid #e5e7eb;
+ border-radius:15px;
+ font-size:15px;
+ outline:none;
+ background:white;
+}
+.card{
+ background:white;
+ border-radius:20px;
+ padding:17px;
+ margin-bottom:12px;
+ box-shadow:0 5px 18px #0000000a;
+}
+.card-head{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+}
+.person{
+ font-size:17px;
+ font-weight:bold;
+}
+.date{
+ color:#6b7280;
+ font-size:12px;
+ margin-top:5px;
+}
+.amounts{
+ display:grid;
+ grid-template-columns:repeat(3,1fr);
+ gap:8px;
+ margin-top:15px;
+}
+.amount{
+ background:#f8fafc;
+ padding:10px 5px;
+ border-radius:12px;
+ text-align:center;
+}
+.amount small{
+ display:block;
+ color:#6b7280;
+ font-size:11px;
+}
+.amount b{
+ display:block;
+ margin-top:4px;
+ font-size:14px;
+}
+.actions{
+ display:flex;
+ gap:8px;
+ margin-top:13px;
+}
+.actions button{
+ flex:1;
+ border:0;
+ padding:11px;
+ border-radius:12px;
+ font-weight:bold;
+}
+.pay{
+ background:#dcfce7;
+ color:#15803d;
+}
+.delete{
+ background:#fee2e2;
+ color:#b91c1c;
+}
+.empty{
+ text-align:center;
+ color:#6b7280;
+ padding:45px 10px;
+}
+
+.modal{
+ display:none;
+ position:fixed;
+ inset:0;
+ background:#0008;
+ z-index:10;
+ align-items:flex-end;
+ justify-content:center;
+}
+.modal.show{display:flex}
+.modal-box{
+ background:white;
+ width:100%;
+ max-width:650px;
+ border-radius:25px 25px 0 0;
+ padding:22px;
+}
+.modal-title{
+ font-size:20px;
+ font-weight:bold;
+ margin-bottom:18px;
+}
+label{
+ display:block;
+ font-size:13px;
+ color:#4b5563;
+ margin:12px 0 6px;
+}
+input{
+ width:100%;
+ padding:14px;
+ border:1px solid #d1d5db;
+ border-radius:13px;
+ font-size:15px;
+}
+.save{
+ width:100%;
+ margin-top:18px;
+ padding:15px;
+ border:0;
+ border-radius:14px;
+ background:#111827;
+ color:white;
+ font-size:16px;
+ font-weight:bold;
+}
+.cancel{
+ width:100%;
+ margin-top:8px;
+ padding:12px;
+ border:0;
+ background:#f3f4f6;
+ border-radius:14px;
+}
+
+@media(min-width:600px){
+ .modal{align-items:center}
+ .modal-box{border-radius:25px}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+ <div class="header-top">
+  <div>
+   <div class="logo">💰 متابعة الديون</div>
+   <div class="subtitle">إدارة بسيطة وواضحة لحقوقك وديونك</div>
+  </div>
+  <button class="add-btn" onclick="openModal()">+</button>
+ </div>
+</header>
+
+<div class="container">
+
+ <div class="stats">
+  <div class="stat">
+   <small>إجمالي الديون</small>
+   <strong class="gold" id="total">0 DH</strong>
+  </div>
+  <div class="stat">
+   <small>المؤدى</small>
+   <strong class="green" id="paid">0 DH</strong>
+  </div>
+  <div class="stat">
+   <small>المتبقي</small>
+   <strong class="red" id="remaining">0 DH</strong>
+  </div>
+ </div>
+
+ <input class="search" id="search"
+   placeholder="🔎 ابحث عن اسم..."
+   oninput="render()">
+
+ <div id="list"></div>
+
+</div>
+
+<div class="modal" id="modal">
+ <div class="modal-box">
+
+  <div class="modal-title">إضافة دين جديد</div>
+
+  <label>اسم الشخص</label>
+  <input id="name" placeholder="مثال: محمد">
+
+  <label>المبلغ (درهم)</label>
+  <input id="amount" type="number" placeholder="1000">
+
+  <label>تاريخ الاستحقاق</label>
+  <input id="due" type="date">
+
+  <button class="save" onclick="addDebt()">حفظ الدين</button>
+  <button class="cancel" onclick="closeModal()">إلغاء</button>
+
+ </div>
+</div>
+
+<script>
+let debts=JSON.parse(localStorage.getItem("debts")||"[]");
+
+function save(){
+ localStorage.setItem("debts",JSON.stringify(debts));
+}
+
+function openModal(){
+ document.getElementById("modal").classList.add("show");
+}
+
+function closeModal(){
+ document.getElementById("modal").classList.remove("show");
+}
+
+function addDebt(){
+ const name=document.getElementById("name").value.trim();
+ const amount=Number(document.getElementById("amount").value);
+ const due=document.getElementById("due").value;
+
+ if(!name || !amount){
+  alert("المرجو إدخال الاسم والمبلغ");
+  return;
+ }
+
+ debts.unshift({
+  id:Date.now(),
+  name,
+  amount,
+  paid:0,
+  due
+ });
+
+ save();
+
+ document.getElementById("name").value="";
+ document.getElementById("amount").value="";
+ document.getElementById("due").value="";
+
+ closeModal();
+ render();
+}
+
+function addPayment(id){
+ const debt=debts.find(x=>x.id===id);
+ if(!debt)return;
+
+ const value=prompt(
+  "أدخل مبلغ الدفعة:\nالمتبقي: "+(debt.amount-debt.paid)+" DH"
+ );
+
+ const payment=Number(value);
+
+ if(!payment || payment<=0)return;
+
+ debt.paid=Math.min(debt.amount,debt.paid+payment);
+
+ save();
+ render();
+}
+
+function removeDebt(id){
+ if(!confirm("هل تريد حذف هذا الدين؟"))return;
+
+ debts=debts.filter(x=>x.id!==id);
+ save();
+ render();
+}
+
+function render(){
+ const list=document.getElementById("list");
+ const query=document.getElementById("search").value.toLowerCase();
+
+ let total=0,paid=0;
+
+ debts.forEach(d=>{
+  total+=d.amount;
+  paid+=d.paid;
+ });
+
+ document.getElementById("total").textContent=total.toLocaleString()+" DH";
+ document.getElementById("paid").textContent=paid.toLocaleString()+" DH";
+ document.getElementById("remaining").textContent=(total-paid).toLocaleString()+" DH";
+
+ const filtered=debts.filter(d=>
+  d.name.toLowerCase().includes(query)
+ );
+
+ if(filtered.length===0){
+  list.innerHTML=`
+   <div class="empty">
+    <div style="font-size:45px">📋</div>
+    <p>لا توجد ديون مسجلة</p>
+    <small>اضغط على + لإضافة أول دين</small>
+   </div>`;
+  return;
+ }
+
+ list.innerHTML=filtered.map(d=>{
+
+  const remain=d.amount-d.paid;
+  const date=d.due
+   ? new Date(d.due+"T00:00:00").toLocaleDateString("fr-FR")
+   : "بدون تاريخ";
+
+  return `
+   <div class="card">
+
+    <div class="card-head">
+     <div>
+      <div class="person">${escapeHtml(d.name)}</div>
+      <div class="date">📅 ${date}</div>
+     </div>
+
+     <div style="font-size:22px">
+      ${remain===0 ? "✅" : "💳"}
+     </div>
+    </div>
+
+    <div class="amounts">
+
+     <div class="amount">
+      <small>الدين</small>
+      <b>${d.amount.toLocaleString()} DH</b>
+     </div>
+
+     <div class="amount">
+      <small>المؤدى</small>
+      <b class="green">${d.paid.toLocaleString()} DH</b>
+     </div>
+
+     <div class="amount">
+      <small>المتبقي</small>
+      <b class="${remain===0?'green':'red'}">
+       ${remain.toLocaleString()} DH
+      </b>
+     </div>
+
+    </div>
+
+    <div class="actions">
+     ${remain>0
+      ? `<button class="pay" onclick="addPayment(${d.id})">💵 تسجيل دفعة</button>`
+      : `<button class="pay" disabled>✅ تم الأداء</button>`
+     }
+
+     <button class="delete" onclick="removeDebt(${d.id})">
+      حذف
+     </button>
+    </div>
+
+   </div>
+  `;
+ }).join("");
+}
+
+function escapeHtml(text){
+ return text.replace(/[&<>"']/g,function(m){
+  return {
+   "&":"&amp;",
+   "<":"&lt;",
+   ">":"&gt;",
+   '"':"&quot;",
+   "'":"&#039;"
+  }[m];
+ });
+}
+
+render();
+</script>
+
+</body>
+     </html>
